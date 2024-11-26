@@ -114,7 +114,7 @@ class MapTR(MVXTwoStageDetector):
         
         return img_feats
 
-
+    
     def forward_pts_train(self,
                           pts_feats,
                           lidar_feat,
@@ -137,10 +137,11 @@ class MapTR(MVXTwoStageDetector):
         Returns:
             dict: Losses of each branch.
         """
-
+        # 输出的是实例查询和点查询的结果
         outs = self.pts_bbox_head(
             pts_feats, lidar_feat, img_metas, prev_bev)
         loss_inputs = [gt_bboxes_3d, gt_labels_3d, outs]
+        # 查询结果和gt_boxes进行匹配,并得到损失函数。
         losses = self.pts_bbox_head.loss(*loss_inputs, img_metas=img_metas)
         return losses
 
@@ -148,6 +149,7 @@ class MapTR(MVXTwoStageDetector):
         dummy_metas = None
         return self.forward_test(img=img, img_metas=[[dummy_metas]])
 
+   
     def forward(self, return_loss=True, **kwargs):
         """Calls either forward_train or forward_test depending on whether
         return_loss=True.
@@ -223,6 +225,7 @@ class MapTR(MVXTwoStageDetector):
 
     # @auto_fp16(apply_to=('img', 'points'))
     @force_fp32(apply_to=('img','points','prev_bev'))
+    # forward_train是MapTR的最外层函数
     def forward_train(self,
                       points=None,
                       img_metas=None,
@@ -259,6 +262,7 @@ class MapTR(MVXTwoStageDetector):
         Returns:
             dict: Losses of different branches.
         """
+        # 如果有lidar信息，那么引入lidar的feature
         lidar_feat = None
         if self.modality == 'fusion':
             lidar_feat = self.extract_lidar_feat(points)
@@ -270,11 +274,13 @@ class MapTR(MVXTwoStageDetector):
         prev_img_metas = copy.deepcopy(img_metas)
         # prev_bev = self.obtain_history_bev(prev_img, prev_img_metas)
         # import pdb;pdb.set_trace()
+        # 历史的bev，如果用到多帧融合会用到这个历史的bev
         prev_bev = self.obtain_history_bev(prev_img, prev_img_metas) if len_queue>1 else None
         
         img_metas = [each[len_queue-1] for each in img_metas]
         if not img_metas[0]['prev_bev_exists']:
             prev_bev = None
+        # 获取图像的feature
         img_feats = self.extract_feat(img=img, img_metas=img_metas)
         losses = dict()
         losses_pts = self.forward_pts_train(img_feats, lidar_feat, gt_bboxes_3d,

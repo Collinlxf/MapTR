@@ -48,7 +48,8 @@ def kitti_data_prep(root_path, info_prefix, version, out_dir):
         mask_anno_path='instances_train.json',
         with_mask=(version == 'mask'))
 
-
+# nuscenes_data_prep生成与nuScences数据集相关的.pkl文件，这些文件记录了基本信息、2D注释和地面实况数据库
+# 函数没有输出变量，只会通过create_nuscenes_infos和export_2d_annotation生成模型训练需要的.pkl文件
 def nuscenes_data_prep(root_path,
                        can_bus_root_path,
                        info_prefix,
@@ -56,6 +57,11 @@ def nuscenes_data_prep(root_path,
                        dataset_name,
                        out_dir,
                        max_sweeps=10):
+    """
+    create_nuscenes_infos函数生成与nuScences数据集相关的.pkl文件，这些文件记录了基本信息、2D注释和地面实况数据库
+    export_2d_annotation函数将create_nuscenes_infos函数生成的pkl文件中的2D注释导出为json文件
+    """
+    
     """Prepare data related to nuScenes dataset.
 
     Related data consists of '.pkl' files recording basic infos,
@@ -69,15 +75,19 @@ def nuscenes_data_prep(root_path,
         out_dir (str): Output directory of the groundtruth database info.
         max_sweeps (int): Number of input consecutive frames. Default: 10
     """
+    # nuScenes数据集本身包含一系列的图片、激光雷达点云数据、CAN总线数据等。.pkl文件只是用来存诸这些数据的元信息和注释
+    # 信息。具体来说，.pkl文件记录了每个样本的相关信息，例如文件路径、时间戳、传感器数据等。
     nuscenes_converter.create_nuscenes_infos(
         root_path, out_dir, can_bus_root_path, info_prefix, version=version, max_sweeps=max_sweeps)
 
     if version == 'v1.0-test':
+        # 处理测试版本，生成测试文件信息并导出2D注释
         info_test_path = osp.join(
             out_dir, f'{info_prefix}_infos_temporal_test.pkl')
         nuscenes_converter.export_2d_annotation(
             root_path, info_test_path, version=version)
     else:
+        # 处理训练和验证版本，生成训练和验证文件信息并导出2D注释
         info_train_path = osp.join(
             out_dir, f'{info_prefix}_infos_temporal_train.pkl')
         info_val_path = osp.join(
@@ -192,7 +202,7 @@ def waymo_data_prep(root_path,
         relative_path=False,
         with_mask=False)
 
-
+# 获取参数并赋值给 args
 parser = argparse.ArgumentParser(description='Data converter arg parser')
 parser.add_argument('dataset', metavar='kitti', help='name of the dataset')
 parser.add_argument(
@@ -228,6 +238,8 @@ parser.add_argument(
     '--workers', type=int, default=4, help='number of threads to be used')
 args = parser.parse_args()
 
+# 根据 args.dataset 的值选择并执行对应的数据准备函数。
+# if __name__ == '__main__': 确保了该代码块只会在脚本作为主程序执行时运行（而不是作为模块导入时）。
 if __name__ == '__main__':
     if args.dataset == 'kitti':
         kitti_data_prep(

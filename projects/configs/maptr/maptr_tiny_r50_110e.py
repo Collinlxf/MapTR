@@ -110,7 +110,7 @@ model = dict(
                             embed_dims=_dim_,
                             num_levels=1),
                         dict(
-                            type='GeometrySptialCrossAttention',
+                            type='GeometrySptialCrossAttention', # GTK
                             pc_range=point_cloud_range,
                             attention=dict(
                                 type='GeometryKernelAttention',

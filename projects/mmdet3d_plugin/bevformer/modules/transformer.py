@@ -248,7 +248,7 @@ class PerceptionTransformer(BaseModule):
                     be returned when `as_two_stage` is True, \
                     otherwise None.
         """
-
+        # encoder,不用太关心，主要关心decoder
         bev_embed = self.get_bev_features(
             mlvl_feats,
             bev_queries,

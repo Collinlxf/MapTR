@@ -50,6 +50,7 @@ bev_h_ = 200
 bev_w_ = 100
 queue_length = 1 # each sequence contains `queue_length` frames.
 
+# 模型框架
 model = dict(
     type='MapTR',
     use_grid_mask=True,

@@ -184,7 +184,9 @@ class MapTRHead(DETRHead):
                                                     self.embed_dims * 2)
             elif self.query_embed_type == 'instance_pts':
                 self.query_embedding = None
+                # M X D
                 self.instance_embedding = nn.Embedding(self.num_vec, self.embed_dims * 2)
+                # N X D
                 self.pts_embedding = nn.Embedding(self.num_pts_per_vec, self.embed_dims * 2)
 
     def init_weights(self):
@@ -200,6 +202,7 @@ class MapTRHead(DETRHead):
     
     # @auto_fp16(apply_to=('mlvl_feats'))
     @force_fp32(apply_to=('mlvl_feats', 'prev_bev'))
+     # 也就是maptr.py里面的self.pts_bbox_head对应的函数
     def forward(self, mlvl_feats, lidar_feat, img_metas, prev_bev=None,  only_bev=False):
         """Forward function.
         Args:
@@ -220,12 +223,17 @@ class MapTRHead(DETRHead):
         bs, num_cam, _, _, _ = mlvl_feats[0].shape
         dtype = mlvl_feats[0].dtype
         # import pdb;pdb.set_trace()
+        # query_embed_type表示要不要双层查询结构
         if self.query_embed_type == 'all_pts':
             object_query_embeds = self.query_embedding.weight.to(dtype)
         elif self.query_embed_type == 'instance_pts':
+            # 1 X M X D
             pts_embeds = self.pts_embedding.weight.unsqueeze(0)
+            # N X 1 X D
             instance_embeds = self.instance_embedding.weight.unsqueeze(1)
+            # N X M X D -> NM X D
             object_query_embeds = (pts_embeds + instance_embeds).flatten(0, 1).to(dtype)
+        # 配置里面直接没有bev_embedding这个配置参数
         if self.bev_embedding is not None:
             bev_queries = self.bev_embedding.weight.to(dtype)
 
@@ -237,6 +245,7 @@ class MapTRHead(DETRHead):
             bev_mask = None
             bev_pos = None
 
+        # only_bev默认是false
         if only_bev:  # only use encoder to obtain BEV features, TODO: refine the workaround
             return self.transformer.get_bev_features(
                 mlvl_feats,

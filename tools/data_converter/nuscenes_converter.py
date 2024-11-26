@@ -381,7 +381,11 @@ def obtain_sensor2top(nusc,
     sweep['sensor2lidar_translation'] = T
     return sweep
 
+# export_2d_annotation 函数将 NuScenes 数据集中的 2D 边界框注释从原始数据中提取出来，
+# 并按照 COCO 格式保存为一个 JSON 文件，包含了每张图像的边界框、相机信息和类别信息。
 
+# COCO（Common Objects in Context）格式是一种广泛用于计算机视觉任务（特别是目标检测、实例分割和关键点检测）
+# 的数据集格式。
 def export_2d_annotation(root_path, info_path, version, mono3d=True):
     """Export 2d annotation from the info file and raw data.
 
@@ -400,6 +404,7 @@ def export_2d_annotation(root_path, info_path, version, mono3d=True):
         'CAM_BACK_LEFT',
         'CAM_BACK_RIGHT',
     ]
+    # 通过 mmcv.load(info_path) 加载给定的 .pkl 格式的 NuScenes 信息文件。
     nusc_infos = mmcv.load(info_path)['infos']
     nusc = NuScenes(version=version, dataroot=root_path, verbose=True)
     # info_2d_list = []
